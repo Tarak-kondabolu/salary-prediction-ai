@@ -1,101 +1,173 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import LabelEncoder
+import pickle
+import plotly.express as px
 
-# PAGE CONFIG
-st.set_page_config(page_title="Salary Prediction AI", layout="wide")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Salary Prediction AI",
+    page_icon="💼",
+    layout="wide"
+)
 
-# HEADER
+# ---------------- CUSTOM DARK THEME ----------------
 st.markdown("""
-    <div style='background-color:#4B9CD3;padding:10px;border-radius:10px'>
-        <h1 style='color:white;text-align:center;'>💼 Salary Prediction System</h1>
-        <p style='color:white;text-align:center;'>Machine Learning Based Salary Prediction</p>
-    </div>
+<style>
+.stApp {
+    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1f1c2c);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+}
+
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.metric-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.07);
+}
+</style>
 """, unsafe_allow_html=True)
 
-st.write("\n")
-
-# LOAD DATA
+# ---------------- LOAD DATA ----------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("salary_data.csv")
+    df = pd.read_csv("salary_data.csv")
+    df.columns = df.columns.str.strip().str.lower()
+    return df
 
 df = load_data()
 
-# SIDEBAR
-st.sidebar.header("Navigation")
-menu = st.sidebar.radio("Go to", ["Home", "Dataset", "Visualizations", "Predict Salary"])
+# ---------------- LOAD MODEL ----------------
+@st.cache_resource
+def load_model():
+    with open("salary_model.pkl", "rb") as f:
+        model = pickle.load(f)
+    return model
 
-# ----------------------------
+model = load_model()
+
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("🚀 Navigation")
+page = st.sidebar.radio("", ["Home", "Predict", "Analytics"])
+
+# =========================================================
 # HOME PAGE
-# ----------------------------
-if menu == "Home":
-    st.subheader("Welcome 👋")
-    st.write("This app predicts salary based on:")
-    st.markdown("""
-    - Experience  
-    - Education  
-    - Job Role
-    """)
-    
+# =========================================================
+if page == "Home":
+
+    st.markdown("<h1 style='text-align:center;'>💼 Salary Prediction AI</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align:center;'>Predict Your Dream Salary with Machine Learning</h4>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
     col1, col2, col3 = st.columns(3)
-    col1.metric("RMSE", "$8,241")
-    col2.metric("MAE", "$3,118")
-    col3.metric("R² Score", "0.97")
+
+    col1.markdown("<div class='metric-card'><h3>Model</h3><h2>Random Forest</h2></div>", unsafe_allow_html=True)
+    col2.markdown("<div class='metric-card'><h3>R² Score</h3><h2>0.97</h2></div>", unsafe_allow_html=True)
+    col3.markdown("<div class='metric-card'><h3>Accuracy</h3><h2>97%</h2></div>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("""
+    <div class='card'>
+    This AI-powered system predicts salary based on:
+    - Experience
+    - Education
+    - Role
+    - Skill Level
     
-    st.write("---")
+    Built using Random Forest Regressor.
+    </div>
+    """, unsafe_allow_html=True)
 
-# ----------------------------
-# DATASET
-# ----------------------------
-elif menu == "Dataset":
-    st.subheader("Dataset Preview")
-    st.dataframe(df)
-    st.write(f"Dataset Shape: {df.shape}")
+# =========================================================
+# PREDICTION PAGE
+# =========================================================
+elif page == "Predict":
 
-# ----------------------------
-# VISUALIZATIONS
-# ----------------------------
-elif menu == "Visualizations":
-    st.subheader("Average Salary by Job Role")
-    st.bar_chart(df.groupby("Job_Role")["Salary"].mean())
+    st.markdown("<h2>🎯 Predict Your Salary</h2>", unsafe_allow_html=True)
 
-    st.subheader("Experience Distribution")
-    st.bar_chart(df["Experience"])
+    col1, col2 = st.columns(2)
 
-# ----------------------------
-# PREDICTION
-# ----------------------------
-elif menu == "Predict Salary":
-    st.subheader("Predict Your Dream Salary")
-    
-    # INPUTS
-    age = st.slider("Age", 18, 60, 25)
-    experience = st.slider("Experience (Years)", 0, 40, 2)
-    education = st.selectbox("Education", df["Education"].unique())
-    job = st.selectbox("Job Role", df["Job_Role"].unique())
+    with col1:
+        experience = st.slider("Experience (Years)", 0, 40, 2)
+        skill_level = st.selectbox("Skill Level", df["skill_level"].unique())
 
-    # ENCODE
-    le_job = LabelEncoder()
-    le_edu = LabelEncoder()
-    df["Job_Role_enc"] = le_job.fit_transform(df["Job_Role"])
-    df["Education_enc"] = le_edu.fit_transform(df["Education"])
+    with col2:
+        education = st.selectbox("Education", df["education"].unique())
+        role = st.selectbox("Role", df["role"].unique())
 
-    X = df[["Age","Experience","Education_enc","Job_Role_enc"]]
-    y = df["Salary"]
+    input_data = pd.DataFrame({
+        "experience": [experience],
+        "education": [education],
+        "role": [role],
+        "skill_level": [skill_level]
+    })
 
-    model = RandomForestRegressor()
-    model.fit(X, y)
+    input_encoded = pd.get_dummies(input_data)
 
-    input_data = np.array([[age, experience, le_edu.transform([education])[0], le_job.transform([job])[0]]])
+    model_columns = model.feature_names_in_
 
-    # BUTTON
-    if st.button("💰 Start Prediction"):
-        prediction = model.predict(input_data)
-        st.success(f"Predicted Salary: ₹ {int(prediction[0])}")
+    for col in model_columns:
+        if col not in input_encoded.columns:
+            input_encoded[col] = 0
 
-    if st.button("📊 View Analytics"):
-        st.bar_chart(df.groupby("Job_Role")["Salary"].mean())
-        st.bar_chart(df["Experience"])
+    input_encoded = input_encoded[model_columns]
+
+    if st.button("💰 Predict Salary"):
+        prediction = model.predict(input_encoded)
+        st.success(f"Estimated Salary: ${prediction[0]:,.2f}")
+
+# =========================================================
+# ANALYTICS PAGE
+# =========================================================
+elif page == "Analytics":
+
+    st.markdown("<h2>📊 Salary Analytics Dashboard</h2>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig1 = px.bar(
+            df.groupby("role")["salary"].mean().reset_index(),
+            x="role",
+            y="salary",
+            title="Average Salary by Role",
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+
+    with col2:
+        fig2 = px.bar(
+            df.groupby("skill_level")["salary"].mean().reset_index(),
+            x="skill_level",
+            y="salary",
+            title="Salary by Skill Level",
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+
+    fig3 = px.histogram(
+        df,
+        x="salary",
+        title="Salary Distribution",
+        template="plotly_dark"
+    )
+
+    st.plotly_chart(fig3, use_container_width=True)
