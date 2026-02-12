@@ -1,0 +1,31 @@
+experience,education,role,skill_level,salary
+1,Bachelor,Developer,2,30000
+2,Bachelor,Developer,3,42000
+3,Master,Developer,4,60000
+5,PhD,Developer,5,90000
+7,Master,Developer,5,110000
+1,Bachelor,Data Scientist,3,50000
+3,Master,Data Scientist,4,75000
+5,PhD,Data Scientist,5,110000
+6,Master,Data Scientist,5,125000
+8,PhD,Data Scientist,5,150000
+1,Bachelor,Designer,2,28000
+2,Bachelor,Designer,3,38000
+4,Master,Designer,4,55000
+6,Master,Designer,5,70000
+7,PhD,Designer,5,85000
+2,Bachelor,Manager,3,60000
+4,Master,Manager,4,90000
+6,Master,Manager,5,120000
+8,PhD,Manager,5,150000
+10,PhD,Manager,5,180000
+1,Bachelor,HR,2,25000
+3,Master,HR,3,45000
+5,Master,HR,4,65000
+7,PhD,HR,5,85000
+9,PhD,HR,5,105000
+2,Bachelor,Marketing,3,40000
+4,Master,Marketing,4,65000
+6,Master,Marketing,5,90000
+8,PhD,Marketing,5,120000
+10,PhD,Marketing,5,150000
