@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score, mean_absolute_error
 st.set_page_config(page_title="Salary Prediction AI", layout="wide")
 
 st.title("💼 Salary Prediction System")
-st.markdown("A Machine Learning based Salary Prediction Web App")
+st.markdown("Machine Learning Based Salary Prediction")
 
 # ----------------------------
 # LOAD DATA
@@ -38,16 +38,10 @@ menu = st.sidebar.selectbox(
 if menu == "Home":
     st.header("Welcome 👋")
     st.write("""
-    This application predicts salary based on:
-    - Age
+    This app predicts salary based on:
     - Experience
     - Education
     - Job Role
-    
-    Built using:
-    - Pandas
-    - Scikit-Learn
-    - Streamlit
     """)
 
 # ----------------------------
@@ -90,7 +84,7 @@ elif menu == "Train Model":
     df_model["Job_Role"] = le_job.fit_transform(df_model["Job_Role"])
     df_model["Education"] = le_edu.fit_transform(df_model["Education"])
 
-    X = df_model.drop("Salary", axis=1)
+    X = df_model[["Experience", "Education", "Job_Role"]]
     y = df_model["Salary"]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -113,20 +107,19 @@ elif menu == "Train Model":
 elif menu == "Predict Salary":
     st.header("Salary Prediction")
 
-    age = st.slider("Age", 18, 60, 25)
     experience = st.slider("Experience (Years)", 0, 40, 1)
     education = st.selectbox("Education", df["Education"].unique())
     job = st.selectbox("Job Role", df["Job_Role"].unique())
 
-    # Encode
     df_model = df.copy()
+
     le_job = LabelEncoder()
     le_edu = LabelEncoder()
 
     df_model["Job_Role"] = le_job.fit_transform(df_model["Job_Role"])
     df_model["Education"] = le_edu.fit_transform(df_model["Education"])
 
-    X = df_model.drop("Salary", axis=1)
+    X = df_model[["Experience", "Education", "Job_Role"]]
     y = df_model["Salary"]
 
     model = RandomForestRegressor()
@@ -135,7 +128,7 @@ elif menu == "Predict Salary":
     job_encoded = le_job.transform([job])[0]
     edu_encoded = le_edu.transform([education])[0]
 
-    input_data = np.array([[age, experience, edu_encoded, job_encoded]])
+    input_data = np.array([[experience, edu_encoded, job_encoded]])
 
     if st.button("Predict"):
         prediction = model.predict(input_data)
@@ -147,13 +140,9 @@ elif menu == "Predict Salary":
 elif menu == "About":
     st.header("About Project")
     st.write("""
-    This is a Medium Level Machine Learning Project.
-
-    Features:
-    - Interactive Dashboard
+    Medium Level ML Project:
+    - Dashboard UI
     - Data Visualization
-    - Model Training
-    - Real-time Salary Prediction
-    
-    Developed using Streamlit.
+    - Random Forest Model
+    - Real-time Prediction
     """)
